@@ -77,7 +77,11 @@ const resolvers = {
   Query: {
     bookCount: () => Book.collection.countDocuments(),
     authorCount: () => Author.collection.countDocuments(),
-    allBooks: (root, args) => Book.find({}),
+    allBooks: (root, args) => Book.find({})
+      .populate('author')
+      .filter(book => 
+        (!args.author || args.author === book.author)
+        && (!args.genre || book.genres.includes(args.genre))),
     allAuthors: () => Author.find({}),
     me: (root, args, context) => {
       return context.currentUser
