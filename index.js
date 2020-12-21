@@ -88,16 +88,15 @@ const resolvers = {
         && (!genre || book.genres.includes(genre))
       )
     },
-    allAuthors: () => Author.find({}),
+    allAuthors: () => Author.find({}).populate('books'),
     me: (root, args, context) => {
       return context.currentUser
     }
   },
   Author: {
     bookCount: async (root) => {
-      const author = await Author.find({ name: root.name })
-      const books = await Book.find({ author })
-      return books.length
+      console.log(root)
+      return root.books.length
     }
   },
   Mutation: {
@@ -122,11 +121,14 @@ const resolvers = {
       try {
         book = new Book({ ...args, author: author._id })
         await book.save()
+        author.books.push(book._id)
+        await author.save()
       } catch (error) {
         throw new UserInputError(error.message, {
           invalidArgs: args
         })
       }
+
 
       pubsub.publish('BOOK_ADDED', { bookAdded: book })
 
